@@ -12,8 +12,6 @@ import secrets
 import board
 from adafruit_display_text import bitmap_label
 from adafruit_bitmap_font import bitmap_font
-import adafruit_requests
-import digitalio
 
 
 def PrintStatus(status: str) -> None:
