@@ -61,11 +61,7 @@ print("ESP32-S2 Adafruit IO Time test")
 print("=" * 40)
 
 DELAY_IN_SECONDS = 0.5
-lastUpdate = datetime.now()
 
-led = digitalio.DigitalInOut(board.LED)
-led.direction = digitalio.Direction.OUTPUT
-display = board.DISPLAY
 
 # Get wifi details and more from a secrets.py file
 try:
@@ -81,6 +77,7 @@ location = secrets.get("timezone", None)
 TIME_URL = f'https://io.adafruit.com/api/v2/{aio_username}/integrations/time/clock?x-aio-key={aio_key}&tz={location}'
 
 # Set up background image and text
+display = board.DISPLAY
 bitmap = displayio.OnDiskBitmap("/images/stars_background.bmp")
 tile_grid = displayio.TileGrid(bitmap, pixel_shader=bitmap.pixel_shader)
 group = displayio.Group()
@@ -107,20 +104,6 @@ requests = adafruit_requests.Session(pool, ssl.create_default_context())
 # Sync time with outside world
 #
 SetLocalTime(GetAdafruitTime())
-# r = rtc.RTC()
-# now = datetime.now()
-# print("| Time to get ill", "-" * 40)
-# print(f'Local time is {GetHmsStr(now)}')
-# print("Fetching text from", TIME_URL)
-# response = requests.get(TIME_URL)
-# timeText = response.text
-# print(f"timeText is {timeText}")
-# remoteTime = datetime.fromisoformat(timeText)
-# preAdjustment = datetime.now()
-# r.datetime = remoteTime.timetuple()
-# postAdjustment = datetime.now()
-# print(f"Adjust time from local:{preAdjustment} to remote:{postAdjustment} -> diff:{(postAdjustment - preAdjustment).total_seconds()}s")
-# print("-" * 40)
 
 #######################################
 #
@@ -130,8 +113,7 @@ while True:
     now = datetime.now()
     nowStr = GetHmsStr(now)
     if text_area.text != nowStr:
-        if nowStr.endswith("0"):
+        if nowStr.endswith("00"):
             print(f"The current time is {nowStr}")
-            lastUpdate = now
         text_area.text = nowStr
     time.sleep(DELAY_IN_SECONDS)
