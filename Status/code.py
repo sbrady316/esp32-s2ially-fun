@@ -4,13 +4,8 @@ from adafruit_datetime import datetime
 from logger import Logger
 from time_sync import TimeSync
 from label_display import LabelDisplay
+from NetHelper import NetHelper
 
-import ipaddress
-import ssl
-import wifi
-import socketpool
-import adafruit_requests
-import secrets
 
 def GetHmsStr(time: datetime) -> str:
     """Formats the specified time as hour:minutes:seconds"""
@@ -18,49 +13,44 @@ def GetHmsStr(time: datetime) -> str:
     # print(f'GetHmsStr -> {str}')
     return str
 
+def GetSecrets():
+    """Get wifi details and more from a secrets.py file"""
+    try:
+        from secrets import secrets
+    except ImportError:
+        print("WiFi secrets are kept in secrets.py, please add them there!")
+        raise
+
+    return secrets
+
 
 #######################################
 #
 # Init
 #
-logger = Logger.Create()
-
-print("=" * 40)
-print("ESP32-S2 Adafruit IO Time test")
-print("=" * 40)
-
 DELAY_IN_SECONDS = 0.5
 
-# Get wifi details and more from a secrets.py file
-try:
-    from secrets import secrets
-except ImportError:
-    print("WiFi secrets are kept in secrets.py, please add them there!")
-    raise
+logger = Logger.Create()
+
+logger.Status("=" * 40)
+logger.Status(f'{"ESP32-S2 Adafruit IO Time test": ^40s}' )
+logger.Status("=" * 40)
+
+secrets = GetSecrets()
 
 labelDisplay = LabelDisplay(Logger.Create())
-
-logger.Log(f'Connecting to {secrets["ssid"]}...')
-wifi.radio.connect(secrets["ssid"], secrets["password"])
-logger.Log("Connected to %s!" % secrets["ssid"])
-logger.Log(f"My IP address is {wifi.radio.ipv4_address}")
-
-ipv4 = ipaddress.ip_address("8.8.4.4")
-logger.Log("Ping google.com: %f ms" % wifi.radio.ping(ipv4))
-
-pool = socketpool.SocketPool(wifi.radio)
-requests = adafruit_requests.Session(pool, ssl.create_default_context())
+netHelper = NetHelper(Logger.Create(), secrets["ssid"], secrets["password"])
+timeSyncEngine = TimeSync(
+    Logger.Create(), 
+    netHelper.GetHttpSession(), 
+    aio_username= secrets["aio_username"], 
+    aio_key=secrets["aio_key"], 
+    location=secrets.get("timezone", None))
 
 #
 # Sync time with outside world
 #
-syncEngine = TimeSync(
-    Logger.Create(), 
-    requests, 
-    aio_username= secrets["aio_username"], 
-    aio_key=secrets["aio_key"], 
-    location=secrets.get("timezone", None))
-syncEngine.Sync()
+timeSyncEngine.Sync()
 
 #######################################
 #

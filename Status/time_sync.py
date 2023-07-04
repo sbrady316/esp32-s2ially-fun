@@ -10,7 +10,7 @@ import secrets
 class TimeSync:
     """Class to sync the local clock with a remote source"""
 
-    def __init__(self, logger: Logger, requests, aio_username: str, aio_key: str, location: str):
+    def __init__(self, logger: Logger, requests: adafruit_requests.Session, aio_username: str, aio_key: str, location: str):
         self._logger = logger
         self._requests = requests
         self._baseUrl = f'https://io.adafruit.com/api/v2/{aio_username}/integrations/time/clock'
@@ -41,6 +41,6 @@ class TimeSync:
         preAdjustment = datetime.now()
         r.datetime = now.timetuple()
         postAdjustment = datetime.now()
-        self._logger.Log(f"Adjust time from local:{preAdjustment} to remote:{postAdjustment} -> diff:{(postAdjustment - preAdjustment).total_seconds()}s")
+        self._logger.Log(f"Adjust time from local:{preAdjustment} to remote:{postAdjustment} -> diff:{(postAdjustment - preAdjustment).total_seconds():f}s")
         self._logger.Log("-" * 40)
 
