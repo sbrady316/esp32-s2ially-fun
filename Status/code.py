@@ -2,6 +2,8 @@ import time
 from adafruit_datetime import datetime
 import rtc
 
+import logger
+
 import ipaddress
 import ssl
 import wifi
@@ -14,12 +16,6 @@ from adafruit_display_text import bitmap_label
 from adafruit_bitmap_font import bitmap_font
 
 
-def PrintStatus(status: str) -> None:
-    header_length = 40
-    status_length = 3 + len(status)
-    print(f'|- {status}', '-'*max(0, header_length - status_length))
-
-
 def GetHmsStr(time: datetime) -> str:
     """Formats the specified time as hour:minutes:seconds"""
     str = f'{time.hour:02}:{time.minute:02}:{time.second:02}'
@@ -27,9 +23,12 @@ def GetHmsStr(time: datetime) -> str:
     return str
 
 
+logger = logger.Logger.Create()
+
+
 def GetAdafruitTime() -> datetime:
     """Gets the time from the ADA fruit time service"""
-    PrintStatus("Time to get ill")
+    logger.Status("Time to get ill")
     print("Fetching text from", TIME_URL)
     response = requests.get(TIME_URL)
     timeText = response.text
@@ -39,8 +38,9 @@ def GetAdafruitTime() -> datetime:
 
     return remoteTime
 
+
 def SetLocalTime(now: datetime) -> None:
-    PrintStatus(f"Setting real-time clock to {now.isoformat()}...")
+    logger.Status(f"Setting real-time clock to {now.isoformat()}...")
     r = rtc.RTC()
     preAdjustment = datetime.now()
     r.datetime = now.timetuple()
@@ -87,13 +87,13 @@ text_area.y = 90
 group.append(text_area)
 display.show(group)
 
-print("Connecting to %s..."%secrets["ssid"])
+logger.Log(f"Connecting to {secrets["ssid"]}...")
 wifi.radio.connect(secrets["ssid"], secrets["password"])
-print("Connected to %s!"%secrets["ssid"])
-print("My IP address is", wifi.radio.ipv4_address)
+logger.Log("Connected to %s!" % secrets["ssid"])
+logger.Log(f"My IP address is {wifi.radio.ipv4_address}")
 
 ipv4 = ipaddress.ip_address("8.8.4.4")
-print("Ping google.com: %f ms" % wifi.radio.ping(ipv4))
+logger.Log("Ping google.com: %f ms" % wifi.radio.ping(ipv4))
 
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
@@ -112,6 +112,6 @@ while True:
     nowStr = GetHmsStr(now)
     if text_area.text != nowStr:
         if nowStr.endswith("00"):
-            print(f"The current time is {nowStr}")
+            logger.Log(f"The current time is {nowStr}")
         text_area.text = nowStr
     time.sleep(DELAY_IN_SECONDS)
