@@ -30,5 +30,5 @@ class LabelDisplay:
     def SetText(self, text: str) -> None:
         if self._label.text != text:
             if (not self._label.text) or (text.endswith("00")):
-                self._logger.Log(f"The current time is {text}")
+                self._logger.Log(f"Updating label to {text}")
             self._label.text = text

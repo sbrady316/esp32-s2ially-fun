@@ -1,6 +1,5 @@
 import time
 from adafruit_datetime import datetime
-import rtc
 
 from logger import Logger
 from time_sync import TimeSync
@@ -12,12 +11,6 @@ import wifi
 import socketpool
 import adafruit_requests
 import secrets
-
-import displayio
-import board
-from adafruit_display_text import bitmap_label
-from adafruit_bitmap_font import bitmap_font
-
 
 def GetHmsStr(time: datetime) -> str:
     """Formats the specified time as hour:minutes:seconds"""
